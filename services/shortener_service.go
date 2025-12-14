@@ -38,7 +38,7 @@ func (s *ShortenerService) CreateShortURL(longURL string) (*models.URL, error) {
 }
 
 func generateSlug() string {
-	b := make([]byte, 9)
+	b := make([]byte, 7)
 	for i := range b {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
