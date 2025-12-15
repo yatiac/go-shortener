@@ -41,7 +41,7 @@ func (sc *ShortController) CreateShortURL(w http.ResponseWriter, r *http.Request
 		Slug     string `json:"slug"`
 		LongURL  string `json:"long_url"`
 	}{
-		ShortURL: os.Getenv("BASE_URL") + url.Slug,
+		ShortURL: os.Getenv("BASE_URL") + "/" + url.Slug,
 		Slug:     url.Slug,
 		LongURL:  url.LongURL,
 	}
