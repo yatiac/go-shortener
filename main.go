@@ -43,15 +43,19 @@ func main() {
 	r := mux.NewRouter()
 
 	// API routes
-	r.HandleFunc("/api/shorten", shortController.CreateShortURL).Methods("POST")
+	r.HandleFunc("/api/shorten", shortController.CreateShortURL).Methods(http.MethodPost, http.MethodOptions)
 
 	r.HandleFunc("/kaithheathcheck", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
-	}).Methods("GET")
+	}).Methods(http.MethodGet)
 
-	// Redirect route (should be last)
-	r.HandleFunc("/{slug}", shortController.RedirectToLongURL).Methods("GET")
+	// Return long URL
+	r.HandleFunc("/{slug}", shortController.GetLongURL).Methods(http.MethodGet)
+
+	// CORS
+	r.Use(disableCORS)
+	r.Use(mux.CORSMethodMiddleware(r))
 
 	// Start server
 	port := os.Getenv("SERVER_PORT")
@@ -61,4 +65,19 @@ func main() {
 
 	log.Printf("Server starting on port %s", port)
 	log.Fatal(http.ListenAndServe(":"+port, r))
+}
+
+func disableCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

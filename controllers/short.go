@@ -51,14 +51,17 @@ func (sc *ShortController) CreateShortURL(w http.ResponseWriter, r *http.Request
 
 }
 
-func (sc *ShortController) RedirectToLongURL(w http.ResponseWriter, r *http.Request) {
+func (sc *ShortController) GetLongURL(w http.ResponseWriter, r *http.Request) {
 	slug := r.URL.Path[1:] // Remove leading slash
 
 	url, err := sc.service.GetLongURL(slug)
 	if err != nil {
 		http.Error(w, "URL not found", http.StatusNotFound)
-		return
 	}
-
-	http.Redirect(w, r, url.LongURL, http.StatusMovedPermanently)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(struct {
+		LongURL string `json:"long_url"`
+	}{
+		LongURL: url.LongURL,
+	})
 }
