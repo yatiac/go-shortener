@@ -45,6 +45,11 @@ func main() {
 	// API routes
 	r.HandleFunc("/api/shorten", shortController.CreateShortURL).Methods("POST")
 
+	r.HandleFunc("/kaithheathcheck", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	}).Methods("GET")
+
 	// Redirect route (should be last)
 	r.HandleFunc("/{slug}", shortController.RedirectToLongURL).Methods("GET")
 
