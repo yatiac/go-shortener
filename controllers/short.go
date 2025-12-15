@@ -1,24 +1,63 @@
 package controllers
 
 import (
-	models "github.com/yatiac/go-shortener/models"
-	storage "github.com/yatiac/go-shortener/storage"
+	"encoding/json"
+	"net/http"
+
+	services "github.com/yatiac/go-shortener/services"
 )
 
 type ShortController struct {
-	store *storage.DBStore
+	service *services.ShortenerService
 }
 
-func NewShortController(store *storage.DBStore) *ShortController {
-	return &ShortController{store: store}
+func NewShortController(service *services.ShortenerService) *ShortController {
+	return &ShortController{service: service}
 }
-func (sc *ShortController) CreateShortURL(longURL, slug string) (*models.URL, error) {
-	url := &models.URL{
-		LongURL: longURL,
-		Slug:    slug,
+func (sc *ShortController) CreateShortURL(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		LongURL string `json:"long_url"`
 	}
-	if err := sc.store.CreateURL(url); err != nil {
-		return nil, err
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
 	}
-	return url, nil
+
+	if request.LongURL == "" {
+		http.Error(w, "Long URL is required", http.StatusBadRequest)
+		return
+	}
+	url, err := sc.service.CreateShortURL(request.LongURL)
+
+	if err != nil {
+		http.Error(w, "Failed to create short URL: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		ShortURL string `json:"short_url"`
+		Slug     string `json:"slug"`
+		LongURL  string `json:"long_url"`
+	}{
+		ShortURL: "http://localhost:8080/" + url.Slug,
+		Slug:     url.Slug,
+		LongURL:  url.LongURL,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+
+}
+
+func (sc *ShortController) RedirectToLongURL(w http.ResponseWriter, r *http.Request) {
+	slug := r.URL.Path[1:] // Remove leading slash
+
+	url, err := sc.service.GetLongURL(slug)
+	if err != nil {
+		http.Error(w, "URL not found", http.StatusNotFound)
+		return
+	}
+
+	http.Redirect(w, r, url.LongURL, http.StatusMovedPermanently)
 }
