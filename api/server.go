@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"fmt"
@@ -7,16 +7,15 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	_ "github.com/joho/godotenv"
-	controllers "github.com/yatiac/go-shortener/controllers"
-	models "github.com/yatiac/go-shortener/models"
-	services "github.com/yatiac/go-shortener/services"
-	storage "github.com/yatiac/go-shortener/storage"
+	"github.com/yatiac/go-shortener/controllers"
+	"github.com/yatiac/go-shortener/models"
+	"github.com/yatiac/go-shortener/services"
+	"github.com/yatiac/go-shortener/storage"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func main() {
+func Handler(w http.ResponseWriter, r *http.Request) {
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		os.Getenv("DB_HOST"),
@@ -40,22 +39,22 @@ func main() {
 	shortController := controllers.NewShortController(shortService)
 
 	// Set up Gorilla Mux router
-	r := mux.NewRouter()
+	router := mux.NewRouter()
 
 	// API routes
-	r.HandleFunc("/api/shorten", shortController.CreateShortURL).Methods(http.MethodPost, http.MethodOptions)
+	router.HandleFunc("/api/shorten", shortController.CreateShortURL).Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/kaithheathcheck", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/kaithheathcheck", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	}).Methods(http.MethodGet)
 
 	// Return long URL
-	r.HandleFunc("/{slug}", shortController.GetLongURL).Methods(http.MethodGet)
+	router.HandleFunc("/{slug}", shortController.GetLongURL).Methods(http.MethodGet)
 
 	// CORS
-	r.Use(controllers.DisableCORS)
-	r.Use(mux.CORSMethodMiddleware(r))
+	router.Use(controllers.DisableCORS)
+	router.Use(mux.CORSMethodMiddleware(router))
 
 	// Start server
 	port := os.Getenv("SERVER_PORT")
@@ -63,6 +62,5 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("Server starting on port %s", port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
+	router.ServeHTTP(w, r)
 }
