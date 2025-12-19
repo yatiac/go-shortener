@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	services "github.com/yatiac/go-shortener/services"
 )
 
@@ -52,7 +53,9 @@ func (sc *ShortController) CreateShortURL(w http.ResponseWriter, r *http.Request
 }
 
 func (sc *ShortController) GetLongURL(w http.ResponseWriter, r *http.Request) {
-	slug := r.URL.Path[1:] // Remove leading slash
+	vars := mux.Vars(r)
+
+	slug := vars["slug"]
 
 	url, err := sc.service.GetLongURL(slug)
 	if err != nil {
