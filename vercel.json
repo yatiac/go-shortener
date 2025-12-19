@@ -3,6 +3,10 @@
     {
       "src": "/.*",
       "dest": "api/server.go"
+    },
+    {
+      "src": "/web/dist/(.*)",
+      "dest": "/web/dist/$1"
     }
   ],
   "git": {
