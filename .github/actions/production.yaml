@@ -1,0 +1,53 @@
+name: Deployment to Vercel
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  ENVIRONMENT: ${{ (github.head_ref || github.ref_name) == 'main' && 'production' || 'preview' }}
+
+on: push
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine environment
+        run: echo $ENVIRONMENT
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 10
+          cache: true
+
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ./go.mod
+          cache-dependency-path: ./go.sum
+
+      - name: Check formatting
+        run: |
+          output=$(gofmt -l .)
+          test -z "$output" || { echo "$output"; exit 1; }
+
+      - name: Install Vercel CLI
+        run: pnpm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=$ENVIRONMENT --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Bundle assets
+        working-directory: ./web
+        run: |
+          pnpm install
+          pnpx vite build
+
+      - name: Deploy production
+        if: env.ENVIRONMENT == 'production'
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy preview
+        if: env.ENVIRONMENT != 'production'
+        run: vercel deploy --token=${{ secrets.VERCEL_TOKEN }}
