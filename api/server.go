@@ -50,7 +50,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}).Methods(http.MethodGet)
 
 	// Return long URL
-	router.HandleFunc("/{slug}", shortController.GetLongURL).Methods(http.MethodGet)
+	router.HandleFunc("/api/short_url/{slug}", shortController.GetLongURL).Methods(http.MethodGet)
 
 	// Serve static files from web/dist
 	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./web/dist/assets"))))
