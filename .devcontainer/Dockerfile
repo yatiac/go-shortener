@@ -3,6 +3,9 @@ FROM mcr.microsoft.com/devcontainers/go:2-1.25-trixie
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
+RUN curl -fsSL https://get.pnpm.io/install.sh | sh -   
+  && source /home/vscode/.bashrc
+  && nvm install --lts
 
 # [Optional] Uncomment the next lines to use go get to install anything else you need
 # USER vscode

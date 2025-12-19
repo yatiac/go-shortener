@@ -45,13 +45,25 @@ func main() {
 	// API routes
 	r.HandleFunc("/api/shorten", shortController.CreateShortURL).Methods(http.MethodPost, http.MethodOptions)
 
+	// Health check
 	r.HandleFunc("/kaithheathcheck", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	}).Methods(http.MethodGet)
 
-	// Return long URL
+	// Return long URL (must come before catch-all)
 	r.HandleFunc("/{slug}", shortController.GetLongURL).Methods(http.MethodGet)
+
+	// Serve static files from web/dist
+	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./web/dist/assets"))))
+	r.HandleFunc("/vite.svg", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./web/dist/vite.svg")
+	})
+
+	// Catch-all handler: serve index.html for SPA routing (must be last)
+	r.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, "./web/dist/index.html")
+	})
 
 	// CORS
 	r.Use(controllers.DisableCORS)
