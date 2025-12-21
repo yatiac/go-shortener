@@ -58,8 +58,9 @@ func (sc *ShortController) GetLongURL(w http.ResponseWriter, r *http.Request) {
 	slug := vars["slug"]
 
 	url, err := sc.service.GetLongURL(slug)
-	if err != nil {
+	if err != nil || url == nil {
 		http.Error(w, "URL not found", http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(struct {

@@ -42,15 +42,16 @@ jobs:
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=$ENVIRONMENT --token=$VERCEL_TOKEN
 
-      - name: Bundle assets
+      - name: Build Project
         working-directory: ./web
         run: |
-          pnpm install
+          pnpm install          
           pnpx vite build
+          vercel build ${{ env.ENVIRONMENT == 'production' && '--prod' || '' }} --token=$VERCEL_TOKEN
 
-      - name: Deploy production
-        if: env.ENVIRONMENT == 'production'
-        run: vercel deploy --prod --token=$VERCEL_TOKEN
+      - name: Deploy to Vercel        
+        run: |
+          vercel deploy --prebuilt ${{ env.ENVIRONMENT == 'production' && '--prod' || '' }} --token=$VERCEL_TOKEN
 
       - name: Deploy preview
         if: env.ENVIRONMENT != 'production'
