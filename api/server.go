@@ -49,6 +49,24 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	}).Methods(http.MethodGet)
 
+	router.HandleFunc("/list_files", func(w http.ResponseWriter, r *http.Request) {
+		files, err := os.ReadDir("./web/dist")
+		if err != nil {
+			http.Error(w, "Failed to read directory", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("["))
+		for i, file := range files {
+			w.Write([]byte(fmt.Sprintf("\"%s\"", file.Name())))
+			if i < len(files)-1 {
+				w.Write([]byte(","))
+			}
+		}
+		w.Write([]byte("]"))
+	}).Methods(http.MethodGet)
+
 	// Return long URL
 	router.HandleFunc("/api/short_url/{slug}", shortController.GetLongURL).Methods(http.MethodGet)
 
