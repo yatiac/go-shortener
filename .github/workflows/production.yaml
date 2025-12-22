@@ -1,58 +1,21 @@
-name: Deployment to Vercel
-
+name: Vercel Production Deployment
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  ENVIRONMENT: ${{ (github.head_ref || github.ref_name) == 'main' && 'production' || 'preview' }}
-  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
-on: push
-
+on:
+  push:
+    branches:
+      - main
 jobs:
-  deploy:
+  Deploy-Production:
     runs-on: ubuntu-latest
     steps:
-      - name: Determine environment
-        run: echo $ENVIRONMENT
-
-      - name: validate token
-        run: echo $VERCEL_TOKEN
-
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          version: 10
-          cache: true
-
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: ./go.mod
-          cache-dependency-path: ./go.sum
-
-      - name: Check formatting
-        run: |
-          output=$(gofmt -l .)
-          test -z "$output" || { echo "$output"; exit 1; }
-
+      - uses: actions/checkout@v2
       - name: Install Vercel CLI
-        run: pnpm install --global vercel@latest
-
+        run: npm install --global vercel@latest
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=$ENVIRONMENT --token=$VERCEL_TOKEN
-
-      - name: Build Project
-        working-directory: ./web
-        run: |
-          pnpm install          
-          pnpx vite build
-          vercel build ${{ env.ENVIRONMENT == 'production' && '--prod' || '' }} --token=$VERCEL_TOKEN
-
-      - name: Deploy to Vercel        
-        run: |
-          vercel deploy --prebuilt ${{ env.ENVIRONMENT == 'production' && '--prod' || '' }} --token=$VERCEL_TOKEN
-
-      - name: Deploy preview
-        if: env.ENVIRONMENT != 'production'
-        run: vercel deploy --token=$VERCEL_TOKEN
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

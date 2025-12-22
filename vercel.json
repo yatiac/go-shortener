@@ -1,15 +1,25 @@
 {
+  "builds": [
+    {
+      "src": "api/server.go",
+      "use": "@vercel/go"
+    },
+    {
+      "src": "web/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
   "routes": [
     {
-      "src": "/.*",
+      "src": "/api/(.*)",
       "dest": "api/server.go"
     },
     {
-      "src": "/web/dist/(.*)",
+      "src": "/(.*)",
       "dest": "/web/dist/$1"
     }
-  ],
-  "git": {
-    "deploymentEnabled": false
-  }
+  ]
 }
