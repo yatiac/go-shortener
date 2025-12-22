@@ -70,13 +70,13 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// Return long URL
 	router.HandleFunc("/api/short_url/{slug}", shortController.GetLongURL).Methods(http.MethodGet)
 
-	// Serve static files from web/dist
-	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./web/dist/assets"))))
+	// // Serve static files from web/dist
+	// router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./web/dist/assets"))))
 
-	// Catch-all handler: serve index.html for SPA routing (must be last)
-	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		http.ServeFile(w, req, "./web/dist/index.html")
-	})
+	// // Catch-all handler: serve index.html for SPA routing (must be last)
+	// router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	// 	http.ServeFile(w, req, "./web/dist/index.html")
+	// })
 
 	// CORS
 	router.Use(controllers.DisableCORS)

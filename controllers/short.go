@@ -18,7 +18,7 @@ func NewShortController(service *services.ShortenerService) *ShortController {
 }
 func (sc *ShortController) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	var request struct {
-		LongURL string `json:"long_url"`
+		LongURL string `json:"long_url2"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
