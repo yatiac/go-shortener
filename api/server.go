@@ -75,7 +75,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	// Catch-all handler: serve index.html for SPA routing (must be last)
 	router.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		http.ServeFile(w, req, "./web/dist/index.html")
+		fmt.Fprint(w, "<h1>Welcome to the URL Shortener Service</h1>")
 	})
 
 	// CORS
