@@ -73,10 +73,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// // Serve static files from web/dist
 	// router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./web/dist/assets"))))
 
-	// // Catch-all handler: serve index.html for SPA routing (must be last)
-	// router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-	// 	http.ServeFile(w, req, "./web/dist/index.html")
-	// })
+	// Catch-all handler: serve index.html for SPA routing (must be last)
+	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, "./web/dist/index.html")
+	})
 
 	// CORS
 	router.Use(controllers.DisableCORS)
