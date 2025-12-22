@@ -7,10 +7,10 @@ on:
     branches:
       - main
 jobs:
-  Deploy-Production:
+  Build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
@@ -18,8 +18,32 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Build
       - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Upload build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: .vercel/output
+
+  Deploy:
+    needs: [Build]
+    name: Deploy to preview environment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: .vercel/output/
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} | tee deploy.log
